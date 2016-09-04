@@ -20,7 +20,7 @@ using QuantConnect.Indicators;
 namespace QuantConnect.Tests.Indicators
 {
     [TestFixture]
-    public class StandardDeviationTests
+    public class StandardDeviationTests : CommonIndicatorTests<IndicatorDataPoint>
     {
         [Test]
         public void ComputesCorrectly()
@@ -44,6 +44,39 @@ namespace QuantConnect.Tests.Indicators
 
             std.Update(reference.AddDays(5), 3m);
             Assert.AreEqual(2.05480466765633m, std.Current.Value);
+        }
+
+        [Test]
+        public void ResetsProperlyStandardDeviation()
+        {
+            var std = new StandardDeviation(3);
+            std.Update(DateTime.Today, 1m);
+            std.Update(DateTime.Today.AddSeconds(1), 5m);
+            std.Update(DateTime.Today.AddSeconds(2), 1m);
+            Assert.IsTrue(std.IsReady);
+
+            std.Reset();
+            TestHelper.AssertIndicatorIsInDefaultState(std);
+        }
+
+        protected override IndicatorBase<IndicatorDataPoint> CreateIndicator()
+        {
+            return new StandardDeviation(10);
+        }
+
+        protected override string TestFileName
+        {
+            get { return "spy_var.txt"; }
+        }
+
+        protected override string TestColumnName
+        {
+            get { return "Var"; }
+        }
+
+        protected override Action<IndicatorBase<IndicatorDataPoint>, double> Assertion
+        {
+            get { return (indicator, expected) => Assert.AreEqual(Math.Sqrt(expected), (double)indicator.Current.Value, 1e-6); }
         }
     }
 }

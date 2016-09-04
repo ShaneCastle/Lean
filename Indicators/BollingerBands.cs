@@ -29,7 +29,7 @@ namespace QuantConnect.Indicators
         public IndicatorBase<IndicatorDataPoint> UpperBand { get; private set; }
 
         /// <summary>
-        /// Gets the upper bollinger band (middleBand - k * stdDev)
+        /// Gets the lower bollinger band (middleBand - k * stdDev)
         /// </summary>
         public IndicatorBase<IndicatorDataPoint> LowerBand { get; private set; }
 
@@ -57,9 +57,8 @@ namespace QuantConnect.Indicators
             MovingAverageType = movingAverageType;
             StandardDeviation = new StandardDeviation(name + "_StandardDeviation", period);
             MiddleBand = movingAverageType.AsIndicator(name + "_MiddleBand", period);
-            var kConstant = new ConstantIndicator<IndicatorDataPoint>(k.ToString(), k);
-            LowerBand = MiddleBand.Minus(StandardDeviation.Times(kConstant), name + "_LowerBand");
-            UpperBand = MiddleBand.Plus(StandardDeviation.Times(kConstant), name + "_UpperBand");
+            LowerBand = MiddleBand.Minus(StandardDeviation.Times(k), name + "_LowerBand");
+            UpperBand = MiddleBand.Plus(StandardDeviation.Times(k), name + "_UpperBand");
         }
            
         /// <summary>
@@ -83,6 +82,18 @@ namespace QuantConnect.Indicators
             UpperBand.Update(input);
             LowerBand.Update(input);
             return input;
+        }
+
+        /// <summary>
+        /// Resets this indicator and all sub-indicators (StandardDeviation, LowerBand, MiddleBand, UpperBand)
+        /// </summary>
+        public override void Reset()
+        {
+            StandardDeviation.Reset();
+            MiddleBand.Reset();
+            UpperBand.Reset();
+            LowerBand.Reset();
+            base.Reset();
         }
     }
 }

@@ -14,16 +14,13 @@
 */
 
 using System;
-using System.Linq;
-using System.Collections.Generic;
-using MathNetStatistics = MathNet.Numerics.Statistics.Statistics;
 
 namespace QuantConnect.Indicators
 {
     /// <summary>
     /// This indicator computes the n-period population standard deviation.
     /// </summary>
-    public class StandardDeviation : WindowIndicator<IndicatorDataPoint>
+    public class StandardDeviation : Variance
     {
         /// <summary>
         /// Initializes a new instance of the StandardDeviation class with the specified period.
@@ -38,7 +35,7 @@ namespace QuantConnect.Indicators
         }
 
         /// <summary>
-        /// Initializes a new instance of the StandardDeviation class with the specified period.
+        /// Initializes a new instance of the StandardDeviation class with the specified name and period.
         /// 
         /// Evaluates the standard deviation of samples in the lookback period. 
         /// On a dataset of size N will use an N normalizer and would thus be biased if applied to a subset.
@@ -53,7 +50,8 @@ namespace QuantConnect.Indicators
         /// <summary>
         /// Gets a flag indicating when this indicator is ready and fully initialized
         /// </summary>
-        public override bool IsReady {
+        public override bool IsReady
+        {
             get { return Samples >= Period; }
         }
 
@@ -61,15 +59,11 @@ namespace QuantConnect.Indicators
         /// Computes the next value of this indicator from the given state
         /// </summary>
         /// <param name="input">The input given to the indicator</param>
+        /// <param name="window">The window for the input history</param>
         /// <returns>A new value for this indicator</returns>
         protected override decimal ComputeNextValue(IReadOnlyWindow<IndicatorDataPoint> window, IndicatorDataPoint input)
         {
-            if (Samples < 2) {
-                return 0m;
-            }
-            IEnumerable<double> doubleValues = window.Select(i => Convert.ToDouble(i.Value));
-            double std = MathNetStatistics.PopulationStandardDeviation(doubleValues);
-            return Convert.ToDecimal(std);
+            return (decimal)Math.Sqrt((double)base.ComputeNextValue(window, input));
         }
     }
 }
